@@ -1,16 +1,18 @@
-# yoinkedapp
+# Yoinked! App
 
-A new Flutter project.
+Flutter project using Flutter 3.13.7
 
 ## Getting Started
+First, [Install Flutter and Setup an IDE](https://docs.flutter.dev/get-started/install)
 
-This project is a starting point for a Flutter application.
+### To get started with development once your environment is set up:
 
-A few resources to get you started if this is your first Flutter project:
+* Find an issue you would like to work on
+* Assign yourself to the issue
+* Create a new feature branch for your work
+* Once work is complete, submit a pull request to merge your feature into 'main'
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
+## Resources
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
