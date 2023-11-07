@@ -1,13 +1,7 @@
 {
-    "dart.flutterSdkPath": ".fvm/flutter_sdk",
-    // Remove .fvm files from search
-    "search.exclude": {
-      "**/.fvm": true
-    },
-    // Remove from file watching
-    "files.watcherExclude": {
-      "**/.fvm": true
-    },
-
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "dart.flutterSdkPaths": [
+      "D:\\dev\\flutter-3.13.7\\flutter",
+    ],
+    "dart.flutterSdkPath": "D:\\dev\\flutter-3.13.7\\flutter",
 }

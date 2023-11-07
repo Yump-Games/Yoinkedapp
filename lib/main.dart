@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+import 'package:yoinkedapp/firebase_options.dart';
 import 'package:yoinkedapp/goals.dart';
 import 'package:yoinkedapp/home.dart';
 import 'package:yoinkedapp/progress.dart';
 
-void main() {
+void main() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -57,17 +62,10 @@ class _MainNavigationState extends State<MainNavigation> {
         ],
       ),
       body: <Widget>[
-        HomeScreen(
-        
-        ),
-        GoalsScreen(
-      
-        ),
-        ProgressScreen(
-          
-        ),
+        HomeScreen(),
+        GoalsScreen(),
+        ProgressScreen(),
       ][currentPageIndex],
     );
   }
 }
-
