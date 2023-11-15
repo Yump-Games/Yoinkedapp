@@ -16,3 +16,4 @@ First, [Install Flutter and Setup an IDE](https://docs.flutter.dev/get-started/i
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+:)
