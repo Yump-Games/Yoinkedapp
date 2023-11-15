@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "29420653037",
+    "project_id": "yoinked-app",
+    "storage_bucket": "yoinked-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:29420653037:android:bce62c7a8d4d1a13b07fe4",
+        "android_client_info": {
+          "package_name": "com.example.yoinkedapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTp7ol8ay5RpWRK8_KhKT8QoYxNNUmNhM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
