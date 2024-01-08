@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:yoinkedapp/utils/indicator.dart';
-
+import 'package:yoinkedapp/models/food_item.dart';
 
 class ProgressScreen extends StatefulWidget {
-  const ProgressScreen({super.key});
+  const ProgressScreen({Key? key}) : super(key: key);
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
@@ -13,207 +14,185 @@ class ProgressScreen extends StatefulWidget {
 
 class _ProgressScreenState extends State<ProgressScreen> {
   int touchedIndex = 0;
+  List<FoodItem> foodItems = [];
+  double totalCarbs = 0;
+  double totalFats = 0;
+  double totalProteins = 0;
+  double totalSugars = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDataFromFirestore();
+  }
+
+  Future<void> _loadDataFromFirestore() async {
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('food_items').get();
+      foodItems =
+          querySnapshot.docs.map((doc) => FoodItem.fromSnapshot(doc)).toList();
+      _calculateTotalGrams();
+      setState(() {});
+    } catch (error) {
+      print('Error loading food items from Firestore: $error');
+    }
+  }
+
+  void _calculateTotalGrams() {
+    for (var foodItem in foodItems) {
+      totalCarbs += foodItem.carbs;
+      totalFats += foodItem.fats;
+      totalProteins += foodItem.proteins;
+      totalSugars += foodItem.sugars;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: 1.3,
-      child: Row(
-        children: <Widget>[
-          const SizedBox(
-            height: 18,
-          ),
-          Expanded(
-            child: AspectRatio(
-              aspectRatio: 1,
-                  child: PieChart(
-          PieChartData(
-            pieTouchData: PieTouchData(
-              touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                setState(() {
-                  if (!event.isInterestedForInteractions ||
-                      pieTouchResponse == null ||
-                      pieTouchResponse.touchedSection == null) {
-                    touchedIndex = -1;
-                    return;
-                  }
-                  touchedIndex =
-                      pieTouchResponse.touchedSection!.touchedSectionIndex;
-                });
-              },
-            ),
-            borderData: FlBorderData(
-              show: false,
-            ),
-            sectionsSpace: 0,
-            centerSpaceRadius: 0,
-            sections: showingSections(),
-          ),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
-            ),
-          ),
-          const Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
+        margin: EdgeInsets.all(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
             children: <Widget>[
-              Indicator(
-                color: Colors.blue,
-                text: 'First',
-                isSquare: true,
+              Text(
+                'Nutrient Distribution',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              SizedBox(
-                height: 4,
-              ),
-              Indicator(
-                color: Colors.yellow,
-                text: 'Second',
-                isSquare: true,
-              ),
-              SizedBox(
-                height: 4,
-              ),
-              Indicator(
-                color: Colors.purple,
-                text: 'Third',
-                isSquare: true,
-              ),
-              SizedBox(
-                height: 4,
-              ),
-              Indicator(
-                color: Colors.black12,
-                text: 'Fourth',
-                isSquare: true,
-              ),
-              SizedBox(
-                height: 4,
-              ),
-              Indicator(
-                color: Colors.green,
-                text: 'Fifth',
-                isSquare: true,
-              ),
-              SizedBox(
-                height: 18,
+              const SizedBox(height: 16),
+              Expanded(
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: PieChart(
+                          PieChartData(
+                            pieTouchData: PieTouchData(
+                              touchCallback: (FlTouchEvent event,
+                                  PieTouchResponse? pieTouchResponse) {
+                                setState(() {
+                                  if (!event.isInterestedForInteractions ||
+                                      pieTouchResponse == null ||
+                                      pieTouchResponse.touchedSection == null) {
+                                    touchedIndex = -1;
+                                    return;
+                                  }
+                                  touchedIndex = pieTouchResponse
+                                      .touchedSection!.touchedSectionIndex;
+                                });
+                              },
+                            ),
+                            borderData: FlBorderData(
+                              show: false,
+                            ),
+                            sectionsSpace: 0,
+                            centerSpaceRadius: 0,
+                            sections: showingSections(),
+                            // Add Legend
+                            sectionOptions: ChartOptions(
+                              // Include the SectionsOptions within ChartOptions
+                              showLegends: true,
+                              // Define Legend Styles
+                              legendOptions: LegendOptions(
+                                showLegendsInRow: true,
+                                position: LegendPosition.right,
+                                textStyle: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 28,
+                    ),
+                    // Add Legend Labels
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        _legendLabel('Carbs', Colors.blue),
+                        _legendLabel('Fats', Colors.yellow),
+                        _legendLabel('Proteins', Colors.orange),
+                        _legendLabel('Sugars', Colors.green),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(
-            width: 28,
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  List<PieChartSectionData> showingSections() {
-    return List.generate(5, (i) {
-      final isTouched = i == touchedIndex;
-      final fontSize = isTouched ? 20.0 : 16.0;
-      final radius = isTouched ? 110.0 : 100.0;
-      final widgetSize = isTouched ? 55.0 : 40.0;
-      const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
+  Widget _legendLabel(String label, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          color: color,
+        ),
+        const SizedBox(width: 8),
+        Text(label),
+      ],
+    );
+  }
 
-      switch (i) {
-        case 0:
-          return PieChartSectionData(
-            color: Colors.blue,
-            value: 40,
-            title: '40%',
-            radius: radius,
-            titleStyle: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xffffffff),
-              shadows: shadows,
-            ),
-            badgeWidget: _Badge(
-              'assets/icons/ophthalmology-svgrepo-com.svg',
-              size: widgetSize,
-              borderColor: Colors.black38,
-            ),
-            badgePositionPercentageOffset: .98,
-          );
-        case 1:
-          return PieChartSectionData(
-            color: Colors.yellow,
-            value: 20,
-            title: '20%',
-            radius: radius,
-            titleStyle: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xffffffff),
-              shadows: shadows,
-            ),
-            badgeWidget: _Badge(
-              'assets/icons/librarian-svgrepo-com.svg',
-              size: widgetSize,
-              borderColor: Colors.deepOrange,
-            ),
-            badgePositionPercentageOffset: .98,
-          );
-        case 2:
-          return PieChartSectionData(
-            color: Colors.orange,
-            value: 20,
-            title: '20%',
-            radius: radius,
-            titleStyle: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xffffffff),
-              shadows: shadows,
-            ),
-            badgeWidget: _Badge(
-              'assets/icons/fitness-svgrepo-com.svg',
-              size: widgetSize,
-              borderColor: Colors.black38,
-            ),
-            badgePositionPercentageOffset: .98,
-          );
-        case 3:
-          return PieChartSectionData(
-            color: Colors.green,
-            value: 10,
-            title: '10%',
-            radius: radius,
-            titleStyle: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xffffffff),
-              shadows: shadows,
-            ),
-            badgeWidget: _Badge(
-              'assets/icons/worker-svgrepo-com.svg',
-              size: widgetSize,
-              borderColor: Colors.black38,
-            ),
-            badgePositionPercentageOffset: .98,
-          );
-        case 4:
-          return PieChartSectionData(
-            color: Colors. black12,
-            value: 10,
-            title: '10%',
-            radius: radius,
-            titleStyle: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xffffffff),
-              shadows: shadows,
-            ),
-            badgeWidget: _Badge(
-              'assets/icons/worker-svgrepo-com.svg',
-              size: widgetSize,
-              borderColor: Colors.black38,
-            ),
-            badgePositionPercentageOffset: .98,
-          );
-        default:
-          throw Exception('Oh no');
-      }
-    });
+  List<PieChartSectionData> showingSections() {
+    double totalGrams = totalCarbs + totalFats + totalProteins + totalSugars;
+    double carbsPercentage = (totalCarbs / totalGrams) * 100;
+    double fatsPercentage = (totalFats / totalGrams) * 100;
+    double proteinsPercentage = (totalProteins / totalGrams) * 100;
+    double sugarsPercentage = (totalSugars / totalGrams) * 100;
+
+    return [
+      _generatePieChartSectionData(0, carbsPercentage, Colors.blue),
+      _generatePieChartSectionData(1, fatsPercentage, Colors.yellow),
+      _generatePieChartSectionData(2, proteinsPercentage, Colors.orange),
+      _generatePieChartSectionData(3, sugarsPercentage, Colors.green),
+    ];
+  }
+
+  PieChartSectionData _generatePieChartSectionData(
+      int index, double percentage, Color color) {
+    final isTouched = index == touchedIndex;
+    final fontSize = isTouched ? 20.0 : 16.0;
+    final radius = isTouched ? 110.0 : 100.0;
+    final widgetSize = isTouched ? 55.0 : 40.0;
+    const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
+
+    return PieChartSectionData(
+      color: color,
+      value: percentage,
+      title: '${percentage.toStringAsFixed(1)}%', // Display percentage
+      radius: radius,
+      titleStyle: TextStyle(
+        fontSize: fontSize,
+        fontWeight: FontWeight.bold,
+        color: const Color(0xffffffff),
+        shadows: shadows,
+      ),
+      badgeWidget: _Badge(
+        'assets/icons/ophthalmology-svgrepo-com.svg', // Use your indicator images
+        size: widgetSize,
+        borderColor: Colors.black38,
+      ),
+      badgePositionPercentageOffset: .98,
+    );
   }
 }
 
@@ -249,11 +228,11 @@ class _Badge extends StatelessWidget {
         ],
       ),
       padding: EdgeInsets.all(size * .15),
-      child: Center(
-        //child: SvgPicture.asset(
-         // svgAsset,                     THIS IS WHERE THE PI CHART INDICATOR IMAGES GO
-      //  ),
-      ),
+      child: const Center(
+          //child: SvgPicture.asset(
+          // svgAsset,                     THIS IS WHERE THE PI CHART INDICATOR IMAGES GO
+          //  ),
+          ),
     );
   }
 }
